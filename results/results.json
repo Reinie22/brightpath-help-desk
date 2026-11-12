@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-11-12T16:39:10.488Z",
+  "model": "qwen2.5:7b",
+  "results": [
+    {
+      "question": "When is the group coaching session?",
+      "simulateFailure": false,
+      "expected": "status answered, sources include doc2",
+      "actual": {
+        "status": "answered",
+        "answer": "Group coaching sessions run every Thursday at 17:00 UTC and last 45 minutes.",
+        "sources": [
+          {
+            "id": "doc2",
+            "title": "Document 2 — Coaching and feedback"
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "question": "What is the refund policy?",
+      "simulateFailure": false,
+      "expected": "status not_found, sources empty",
+      "actual": {
+        "status": "not_found",
+        "answer": "That information isn't available in the supplied documents. Please contact support@brightpath.example (Monday to Friday, 09:00–17:00 UTC).",
+        "sources": []
+      },
+      "pass": true
+    },
+    {
+      "question": "When is the group coaching session?",
+      "simulateFailure": true,
+      "expected": "status error, message \"The assistant is unavailable right now. Please try again in a moment, or contact support@brightpath.example.\"",
+      "actual": {
+        "status": "error",
+        "message": "The assistant is unavailable right now. Please try again in a moment, or contact support@brightpath.example."
+      },
+      "pass": true
+    }
+  ]
+}

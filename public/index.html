@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BrightPath Learn Help Desk</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+    form { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+    #question { flex: 1 1 280px; padding: 0.5rem; font-size: 1rem; }
+    button { padding: 0.5rem 1rem; font-size: 1rem; }
+    #result { margin-top: 1.5rem; padding: 1rem; border-left: 5px solid; border-radius: 4px; }
+    #result[hidden] { display: none; }
+    .answered { background: #eef8ee; border-color: #2e8b3d; }
+    .not_found { background: #fff7e6; border-color: #d98e04; }
+    .error { background: #fdecec; border-color: #c62828; }
+    #source { margin: 0.75rem 0 0; font-size: 0.9rem; color: #444; }
+  </style>
+</head>
+<body>
+  <h1>BrightPath Learn Help Desk</h1>
+  <form id="form">
+    <input id="question" type="text" maxlength="500" placeholder="Ask a question…" required>
+    <button id="ask" type="submit">Ask</button>
+    <label><input id="fail" type="checkbox"> Simulate API failure</label>
+  </form>
+
+  <div id="result" hidden>
+    <div id="answer"></div>
+    <p id="source"></p>
+  </div>
+
+  <script>
+    const form = document.getElementById("form");
+    const questionEl = document.getElementById("question");
+    const askBtn = document.getElementById("ask");
+    const failEl = document.getElementById("fail");
+    const resultEl = document.getElementById("result");
+    const answerEl = document.getElementById("answer");
+    const sourceEl = document.getElementById("source");
+
+    // Always textContent: model output is never trusted as HTML.
+    function show(status, text, sources) {
+      resultEl.className = status;
+      resultEl.hidden = false;
+      answerEl.textContent = text;
+      const titles = (sources || []).map((s) => s.title);
+      sourceEl.textContent = titles.length
+        ? (titles.length === 1 ? "Source: " : "Sources: ") + titles.join("; ")
+        : "";
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      askBtn.disabled = true;
+      askBtn.textContent = "Thinking…";
+      try {
+        const res = await fetch("/api/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: questionEl.value,
+            simulateFailure: failEl.checked,
+          }),
+        });
+        const data = await res.json();
+        if (data.status === "answered" || data.status === "not_found") {
+          show(data.status, data.answer, data.sources);
+        } else {
+          show("error", data.message || "Something went wrong.", []);
+        }
+      } catch (err) {
+        show("error", "Could not reach the server. Please try again.", []);
+      } finally {
+        askBtn.disabled = false;
+        askBtn.textContent = "Ask";
+      }
+    });
+  </script>
+</body>
+</html>
